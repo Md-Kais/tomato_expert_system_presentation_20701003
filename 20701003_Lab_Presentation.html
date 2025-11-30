@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tomato Expert System Presentation — Responsive</title>
+  <style>
+    /* ======================
+       Global Reset & Root Vars
+       ====================== */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root{
+      /* Type scale via clamp — tuned for mobile to desktop */
+      --fs-body: clamp(15px, 1.2vw + 0.4rem, 18px);
+      --fs-h1: clamp(28px, 2.8vw + .6rem, 48px);
+      --fs-h2: clamp(22px, 2.2vw + .5rem, 34px);
+      --fs-h3: clamp(18px, 1.4vw + .45rem, 24px);
+      --fs-code: clamp(13px, 0.9vw + .35rem, 16px);
+
+      /* Spacing */
+      --pad-slide-x: clamp(18px, 6vw, 80px);
+      --pad-slide-y: clamp(20px, 6vh, 50px);
+      --gap-lg: clamp(16px, 2.2vw, 40px);
+      --gap-md: clamp(12px, 1.6vw, 24px);
+      --gap-sm: clamp(8px, 1.2vw, 16px);
+
+      /* Colors */
+      --ink: #1a1a1a;
+      --ink-2: #2c3e50;
+      --muted: #555;
+      --muted-2: #666;
+      --bg: #ffffff;
+      --surface: #f8f9fa;
+      --surface-2: #f5f5f5;
+      --line: #ddd;
+      --accent: #0066cc;
+    }
+
+    body{
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: var(--bg);
+      color: var(--ink-2);
+      overflow: hidden;
+      font-size: var(--fs-body);
+      line-height: 1.55;
+    }
+
+    .presentation-container{
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .slide{
+      display: none;
+      flex: 1;
+      padding: var(--pad-slide-y) var(--pad-slide-x);
+      overflow-y: auto;
+    }
+    .slide.active{
+      display: flex;
+      flex-direction: column;
+    }
+    .slide-content{ flex: 1; }
+
+    /* ======================
+       Cover Slide
+       ====================== */
+    .cover-slide .slide-content{
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      gap: var(--gap-md);
+    }
+    .cover-title{ font-size: var(--fs-h1); font-weight: 800; color: var(--ink); }
+    .cover-subtitle{
+      font-size: clamp(18px, 1.6vw + .4rem, 22px);
+      color: var(--muted);
+      max-width: 900px;
+    }
+    .cover-authors{ font-size: clamp(16px, 1.4vw + .3rem, 20px); font-weight: 600; color: var(--ink-2); }
+    .cover-affiliation{ font-size: clamp(15px, 1.2vw + .25rem, 18px); color: var(--muted-2); }
+    .cover-github{
+      font-size: clamp(15px, 1.2vw + .25rem, 18px);
+      color: var(--accent);
+      text-decoration: none;
+      padding: 10px 20px;
+      border: 2px solid var(--accent);
+      border-radius: 8px;
+      transition: all .25s ease;
+    }
+    .cover-github:hover{ background: var(--accent); color: #fff; }
+
+    /* ======================
+       Regular Slides
+       ====================== */
+    .slide-title{
+      font-size: var(--fs-h2);
+      font-weight: 800;
+      color: var(--ink);
+      margin-bottom: .6rem;
+      border-bottom: 3px solid var(--ink-2);
+      padding-bottom: .5rem;
+    }
+    .slide-subtitle{
+      font-size: var(--fs-h3);
+      color: var(--muted);
+      font-weight: 600;
+      margin: .4rem 0 .8rem;
+    }
+    .slide-text{ color: #333; margin-bottom: .8rem; }
+
+    ul{ margin-left: 1.25rem; margin-bottom: .8rem; }
+    li{ margin-bottom: .4rem; color: #333; }
+
+    .code-block{
+      background: var(--surface-2);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 14px 16px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      font-size: var(--fs-code);
+      color: var(--ink);
+      margin: 12px 0;
+      overflow-x: auto;
+      white-space: pre;
+    }
+    .formula{
+      background: #f9f9f9;
+      border-left: 4px solid var(--ink-2);
+      padding: 14px 16px;
+      margin: 12px 0;
+      font-size: clamp(14px, 1vw + .35rem, 17px);
+      line-height: 1.8;
+    }
+
+    
+    /* ======================
+       Responsive Columns (wrap on small screens)
+       - Desktop: 3 columns
+       - Tablet:  2 columns
+       - Mobile:  1 column
+       ====================== */
+    .three-columns{
+      display: grid;
+      gap: var(--gap-md);
+      margin-top: var(--gap-sm);
+      grid-template-columns: repeat(3, minmax(260px, 1fr));
+      align-items: stretch;
+    }
+    @media (max-width: 1200px){
+      .three-columns{ grid-template-columns: repeat(2, minmax(260px, 1fr)); }
+    }
+    @media (max-width: 720px){
+      .three-columns{ grid-template-columns: 1fr; }
+    }
+    @media (max-width: 420px){
+      .three-columns .column h3{ font-size: calc(var(--fs-h3) * 0.95); }
+      .three-columns .code-block{ font-size: calc(var(--fs-code) * 0.95); }
+    }
+
+    .column{
+      background: var(--surface);
+      padding: 16px;
+      border-radius: 10px;
+      border: 1px solid var(--line);
+      break-inside: avoid-column;
+    }
+    .column h3{ font-size: var(--fs-h3); color: var(--ink); margin-bottom: .6rem; }
+    .column .code-block{
+      font-size: var(--fs-code);
+      padding: 12px 14px;
+      white-space: pre-wrap;      /* wrap long commands nicely */
+      word-break: break-word;
+    }
+
+
+    .two-column{
+      display: grid;
+      gap: var(--gap-lg);
+      margin-top: var(--gap-sm);
+      grid-template-columns: 1fr 1fr;
+    }
+    @media (max-width: 900px){
+      .two-column{ grid-template-columns: 1fr; }
+    }
+
+    /* ======================
+       Navigation
+       ====================== */
+    .navigation{
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px var(--pad-slide-x);
+      background: var(--surface);
+      border-top: 2px solid var(--line);
+      gap: var(--gap-sm);
+    }
+    .nav-buttons{ display: flex; gap: 10px; }
+    .nav-btn{
+      padding: 10px 18px;
+      font-size: clamp(14px, 1vw + .3rem, 16px);
+      background: var(--ink-2);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background .2s ease;
+    }
+    .nav-btn:hover:not(:disabled){ background: #1a252f; }
+    .nav-btn:disabled{ background: #bbb; cursor: not-allowed; }
+    .slide-counter{ color: var(--muted); font-weight: 600; }
+
+    /* ======================
+       Thank You Slide
+       ====================== */
+    .thank-you-slide .slide-content{
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      gap: var(--gap-md);
+    }
+    .thank-you-title{
+      font-size: clamp(34px, 3vw + .6rem, 56px);
+      font-weight: 900;
+      color: var(--ink);
+    }
+    .thank-you-github{
+      font-size: clamp(16px, 1.3vw + .3rem, 22px);
+      color: var(--accent);
+      text-decoration: none;
+      padding: 12px 22px;
+      border: 2px solid var(--accent);
+      border-radius: 10px;
+      transition: all .25s ease;
+    }
+    .thank-you-github:hover{ background: var(--accent); color: #fff; }
+    .thank-you-questions{
+      font-size: clamp(18px, 1.8vw + .2rem, 28px);
+      color: var(--muted);
+      font-style: italic;
+    }
+
+    /* ======================
+       Pretty File Tree (replaces ASCII block)
+       ====================== */
+    .file-tree{
+      --tree-bg: #0f1729;
+      --tree-card: #0b1220;
+      --tree-ink: #e7ecf5;
+      --tree-muted: #a6b0c4;
+      --tree-line: #263455;
+      --tree-accent: #5da0ff;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      background: linear-gradient(180deg, var(--tree-card), #0c1424);
+      color: var(--tree-ink);
+      border: 1px solid #18223b;
+      border-radius: 14px;
+      padding: 16px 18px;
+      box-shadow: 0 10px 30px rgba(0,0,0,.25);
+      max-width: 920px;
+      margin-top: .5rem;
+    }
+    .file-tree .root{
+      display: inline-flex;
+      align-items: baseline;
+      gap: .6rem;
+      font-weight: 800;
+      color: var(--tree-accent);
+      margin-bottom: .4rem;
+      font-size: clamp(14px, 1vw + .35rem, 18px);
+    }
+    .file-tree .tree, .file-tree .tree ul{ list-style: none; margin: 0; padding: 0; }
+    .file-tree .tree > li{ margin-left: .1rem; }
+
+    .file-tree .tree ul{
+      margin-left: 1.2rem;
+      padding-left: 1.0rem;
+      border-left: 1.5px solid var(--tree-line);
+    }
+    .file-tree li{
+      position: relative;
+      padding: .35rem 0 .35rem .5rem;
+      font-size: clamp(13px, 0.9vw + .35rem, 16px);
+    }
+    .file-tree li::before{
+      content: "";
+      position: absolute;
+      left: -1.5rem;
+      top: 1.05em;
+      width: 1.25rem;
+      border-top: 1.5px solid var(--tree-line);
+    }
+    .file-tree .label{
+      display: inline-flex;
+      align-items: center;
+      gap: .55rem;
+      line-height: 1.2;
+    }
+    .file-tree .label code{ color: var(--tree-ink); font-weight: 700; }
+    .file-tree .meta{ color: var(--tree-muted); margin-left: .5rem; font-size: .92em; }
+
+    .file-tree .folder > .label::before{ content: "📁"; font-size: 1.05em; }
+    .file-tree .file   > .label::before{ content: "📄"; font-size: 1.05em; }
+
+    /* Ensure nice readable text sizes on very large displays */
+    @media (min-width: 1600px){
+      .slide-title{ letter-spacing: .2px; }
+      .slide-text, li{ font-size: max(18px, var(--fs-body)); }
+      .code-block{ font-size: max(16px, var(--fs-code)); }
+    }
+  </style>
+</head>
+<body>
+  <div class="presentation-container">
+
+    <!-- Slide 1: Cover -->
+    <div class="slide active cover-slide">
+      <div class="slide-content">
+        <h1 class="cover-title">A Compact Tomato Expert System</h1>
+        <p class="cover-subtitle">Backward-Chaining with MYCIN-Style Certainty Factors and a Minimal REST API in SWI-Prolog</p>
+        <p class="cover-authors">Dr. Mohammad Shahadat Hossain, Md. Kais</p>
+        <p class="cover-affiliation">Department of Computer Science and Engineering, University of Chittagong</p>
+        <a href="https://github.com/Md-Kais/tomato-expert" target="_blank" class="cover-github">GitHub: github.com/Md-Kais/tomato-expert</a>
+      </div>
+    </div>
+
+    <!-- Slide 2: Abstract -->
+    <div class="slide">
+      <div class="slide-content">
+        <h2 class="slide-title">Abstract</h2>
+        <p class="slide-text">
+          This paper presents a compact, explainable expert system for diagnosing tomato (Solanum lycopersicum) diseases and physiological disorders.
+          Implemented in SWI-Prolog, the system performs goal-driven (backward-chaining) reasoning and propagates uncertainty using MYCIN-style certainty
+          factors (CFs). It supports three operation modes: (i) interactive CLI with bilingual prompts (English/Bangla), (ii) batch inference from JSON,
+          and (iii) a lightweight REST endpoint.
+        </p>
+      </div>
+    </div>
+
+    <!-- Slide 3: Introduction - Why This Matters -->
+    <div class="slide">
+      <div class="slide-content">
+        <h2 class="slide-title">1. Introduction - Why This Matters</h2>
+        <ul>
+          <li>Tomato production is constrained by diseases: early blight, late blight, Septoria leaf spot, bacterial diseases, viruses</li>
+          <li>Need for accessible triage tool that asks only necessary questions</li>
+          <li>Tolerates incomplete confidence</li>
+          <li>Returns labeled, extension-aligned actions</li>
+          <li>Encodes canonical symptom patterns from extension authorities (UMN, NC State, UC IPM, OSU, UConn, Wisconsin)</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Slide 4: How We Solve It -->
+    <div class="slide">
+      <div class="slide-content">
+        <h2 class="slide-title">1. Introduction - How We Solve It</h2>
+        <ul>
+          <li>Knowledge base of rules: <code>rule(Disease, [Antecedents...], RuleCF)</code></li>
+          <li>Evidence acquisition with bilingual prompts (Bangla/English)</li>
+          <li>Uncertainty propagation with MYCIN CF math and rule-weighting</li>
+          <li>Multiple I/O modes: CLI, JSON batch, REST endpoint</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Slide 5: Reasoning Model - Backward Chaining -->
+    <div class="slide">
+      <div class="slide-content">
+        <h2 class="slide-title">2. Preliminaries - Reasoning Model</h2>
+        <h3 class="slide-subtitle">Backward-Chaining</h3>
+        <ul>
+          <li>Start from target hypotheses (diseases)</li>
+          <li>Fetch only required antecedents for each rule</li>
+          <li>Ask user when evidence is missing</li>
+          <li>Fits logic programming (SLD resolution)</li>
+          <li>Keeps interaction minimal</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Slide 6: Certainty Factors -->
+    <div class="slide">
+      <div class="slide-content">
+        <h2 class="slide-title">2. Preliminaries - Certainty Factors (CFs)</h2>
+        <ul>
+          <li>Evidence and rule strengths: real values in [-1, +1]</li>
+          <li>Rule activation uses minimum CF of all antecedents ("weakest link")</li>
+          <li>Scaled by rule's own weight</li>
+          <li>MYCIN combination formulas for multiple rules</li>
+        </ul>
+        <div class="formula">
+          <strong>MYCIN Combination Formula:</strong><br><br>
+          combine(A, B) = <br>
+          &nbsp;&nbsp;• A + B - AB &nbsp;&nbsp;&nbsp;&nbsp;if A, B &gt; 0<br>
+          &nbsp;&nbsp;• A + B + AB &nbsp;&nbsp;&nbsp;&nbsp;if A, B &lt; 0<br>
+          &nbsp;&nbsp;• (A + B) / (1 - min(|A|, |B|)) &nbsp;&nbsp;otherwise
+        </div>
+      </div>
+    </div>
+
+    <!-- Slide 7: Platform and Libraries -->
+    <div class="slide">
+      <div class="slide-content">
+        <h2 class="slide-title">2. Preliminaries - Platform</h2>
+        <h3 class="slide-subtitle">SWI-Prolog Components</h3>
+        <ul>
+          <li>Dynamic DB for transient knowledge (asserta/1, retractall/1)</li>
+          <li>HTTP server: thread_httpd + http_dispatch (concurrent &amp; scalable)</li>
+          <li>HTTP parameters/JSON: http_json for robust request handling</li>
+          <li>Domain sources: Extension factsheets and IPM pages</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Slide 8: Repository Layout (Rebuilt Tree) -->
+    <div class="slide">
+      <div class="slide-content">
+        <h2 class="slide-title">3. Implementation - Repository</h2>
+        <div class="file-tree">
+          <div class="root">tomato_expert/</div>
+          <ul class="tree">
+            <li class="folder">
+              <span class="label">src</span>
+              <ul>
+                <li class="file">
+                  <span class="label"><code>plant_expert.pl</code></span>
+                  <span class="meta">— main engine: rules, prompts, CF math, I/O</span>
+                </li>
+                <li class="file">
+                  <span class="label"><code>run_from_answers.pl</code></span>
+                  <span class="meta">— batch runner/replayer</span>
+                </li>
+                <li class="file">
+                  <span class="label"><code>answers.txt</code></span>
+                  <span class="meta">— saved Q&amp;A / facts examples</span>
+                </li>
+              </ul>
+            </li>
+          </ul>
+        </div>
+        <p class="slide-text" style="margin-top: 1rem;">
+          <strong>GitHub:</strong>
+          <a href="https://github.com/Md-Kais/tomato-expert" target="_blank" style="color: var(--accent);">
+            https://github.com/Md-Kais/tomato-expert
+          </a>
+        </p>
+      </div>
+    </div>
+
+    <!-- Slide 9: Knowledge Representation -->
+    <div class="slide">
+      <div class="slide-content">
+        <h2 class="slide-title">3. Implementation - Knowledge Representation</h2>
+        <div class="code-block">rule(early_blight,
+  [symptom(leaf_lesion_concentric),
+   symptom(lower_leaf_first),
+   weather(warm_humid_week),
+   irrigation(overhead)], 0.85).
+
+advice(early_blight,
+  ["Rotate 2+ yrs; drip/leaf-dry; sanitation"],
+  ["chlorothalonil", "mancozeb"]).
+
+sources(early_blight, [
+  ["UMN Early/Late blight overview",
+   "https://extension.umn.edu/disease-management/early-blight-tomato-and-potato"]
+]).
+</div>
+
+      </div>
+    </div>
+
+    <!-- Slide 10: Evidence Acquisition -->
+    <div class="slide">
+      <div class="slide-content">
+        <h2 class="slide-title">3. Implementation - Evidence Acquisition</h2>
+        <p class="slide-text"><strong>Interactive mode with bilingual prompts (Bangla/English)</strong></p>
+        <div class="code-block">ask(Fact, CF) :-
+  pretty(Fact, Prompt),
+  format('\n[?] ~s (y/n/?/0..1): ', [Prompt]),
+  read(Token), interpret(Token, CF1),
+  asserta(known(Fact, CF1)), CF = CF1.</div>
+      </div>
+    </div>
+
+    <!-- Slide 11: I/O Modes (wrap on small screens) -->
+    <div class="slide">
+      <div class="slide-content">
+        <h2 class="slide-title">3. Implementation - I/O Modes</h2>
+        <div class="three-columns">
+          <div class="column">
+            <h3>1. Interactive CLI</h3>
+            <div class="code-block">swipl -q -s plant_expert.pl -g main -t halt</div>
+          </div>
+          <div class="column">
+            <h3>2. Answer From Text</h3>
+            <div class="code-block"> swipl -q -s run_from_answers.pl -- --answers answers.txt --top 3 --lang en</div>
+          </div>
+          <div class="column">
+            <h3>3. REST API</h3>
+            <div class="code-block">POST http://localhost:8080/infer
+
+Concurrent requests via thread_httpd</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Slide 12: Evaluation Method -->
+    <div class="slide">
+      <div class="slide-content">
+        <h2 class="slide-title">4. Evaluation - Method</h2>
+        <h3 class="slide-subtitle">Three Validation Aspects:</h3>
+        <ul>
+          <li><strong>1. Inference correctness:</strong> Target disease appears in Top-N with high CF</li>
+          <li><strong>2. Uncertainty behavior:</strong> Partial confidence combines sensibly (never exceeds +1)</li>
+          <li><strong>3. I/O robustness:</strong> CLI, JSON, and HTTP produce identical Top-N</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Slide 13: Worked Example -->
+    <div class="slide">
+      <div class="slide-content">
+        <h2 class="slide-title">4. Evaluation - Worked Example: Early Blight</h2>
+        <div class="two-column">
+          <div>
+            <h3 class="slide-subtitle">Facts (all certain):</h3>
+            <ul>
+              <li>Concentric/bull's-eye lesions on leaves</li>
+              <li>Lower leaves affected first</li>
+              <li>Recent warm &amp; humid week</li>
+              <li>Overhead irrigation</li>
+            </ul>
+          </div>
+          <div>
+            <h3 class="slide-subtitle">Result:</h3>
+            <ul>
+              <li>Rule weight = 0.85</li>
+              <li>Conjunction = min(1,1,1,1) = 1.0</li>
+              <li>Rule CF = 1.0 × 0.85 = 0.85</li>
+              <li><strong>Output: early_blight — confidence 85%</strong></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Slide 14: Coverage & Limitations -->
+    <div class="slide">
+      <div class="slide-content">
+        <h2 class="slide-title">4. Evaluation - Coverage &amp; Limitations</h2>
+        <div class="two-column">
+          <div>
+            <h3 class="slide-subtitle">Coverage (partial list):</h3>
+            <ul>
+              <li>Late blight</li>
+              <li>Bacterial speck/spot</li>
+              <li>Septoria leaf spot</li>
+              <li>Leaf mold, powdery mildew</li>
+              <li>TSWV</li>
+              <li>Blossom-end rot</li>
+              <li>Root-knot nematode</li>
+              <li>Fusarium/Verticillium wilts</li>
+              <li>Mosaic viruses</li>
+            </ul>
+          </div>
+          <div>
+            <h3 class="slide-subtitle">Limitations:</h3>
+            <ul>
+              <li>CFs encode expert belief, not probability</li>
+              <li>Domain drift requires seasonal updates</li>
+              <li>Must follow local labels and regulations</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Slide 15: Conclusion -->
+    <div class="slide">
+      <div class="slide-content">
+        <h2 class="slide-title">5. Conclusion</h2>
+        <p class="slide-text" style="margin-bottom: .8rem;">
+          <strong>The Tomato Expert System offers a compact, explainable, multilingual diagnostic assistant.</strong>
+        </p>
+        <div class="two-column">
+          <div>
+            <h3 class="slide-subtitle">Key Features:</h3>
+            <ul>
+              <li>Backward-chaining + MYCIN CFs</li>
+              <li>Frugal (asks minimum) and transparent (shows advice &amp; sources)</li>
+              <li>HTTP JSON endpoint for easy integration</li>
+            </ul>
+          </div>
+          <div>
+            <h3 class="slide-subtitle">Future Work:</h3>
+            <ul>
+              <li>Case logging + analytics</li>
+              <li>Rule learning/CF tuning from labeled cases</li>
+              <li>Lightweight UI with image-assisted symptom prompts</li>
+              <li>Internationalization for local labels</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Slide 16: Thank You -->
+    <div class="slide thank-you-slide">
+      <div class="slide-content">
+        <h1 class="thank-you-title">Thank You</h1>
+        <a href="https://github.com/Md-Kais/tomato-expert" target="_blank" class="thank-you-github">GitHub: github.com/Md-Kais/tomato-expert</a>
+        <p class="thank-you-questions">Questions?</p>
+      </div>
+    </div>
+
+    <!-- Navigation -->
+    <div class="navigation">
+      <div class="nav-buttons">
+        <button class="nav-btn" id="prevBtn" onclick="changeSlide(-1)">Previous</button>
+        <button class="nav-btn" id="nextBtn" onclick="changeSlide(1)">Next</button>
+      </div>
+      <div class="slide-counter">
+        <span id="currentSlide">1</span> / <span id="totalSlides">16</span>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let currentSlide = 1;
+    const totalSlides = 16;
+
+    function showSlide(n){
+      const slides = document.querySelectorAll('.slide');
+      if(n > totalSlides){ currentSlide = totalSlides; }
+      else if(n < 1){ currentSlide = 1; }
+      else { currentSlide = n; }
+
+      slides.forEach(s => s.classList.remove('active'));
+      slides[currentSlide - 1].classList.add('active');
+
+      document.getElementById('currentSlide').textContent = currentSlide;
+      document.getElementById('prevBtn').disabled = (currentSlide === 1);
+      document.getElementById('nextBtn').disabled = (currentSlide === totalSlides);
+    }
+    function changeSlide(dir){ showSlide(currentSlide + dir); }
+
+    // Keyboard navigation
+    document.addEventListener('keydown', (e) => {
+      if(e.key === 'ArrowLeft') changeSlide(-1);
+      if(e.key === 'ArrowRight') changeSlide(1);
+    });
+
+    // Init
+    document.getElementById('totalSlides').textContent = totalSlides;
+    showSlide(1);
+  </script>
+</body>
+</html>
